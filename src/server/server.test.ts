@@ -1,7 +1,7 @@
 import request from 'supertest'
 import axios from 'axios'
 
-import createServer from './server'
+import createServer, { API_TOKEN } from './server'
 
 jest.mock('axios', () => ({
   get: jest.fn(),
@@ -109,6 +109,26 @@ describe('get stock data', () => {
     expect(res.body).toBe('No stock symbols provided')
   })
 
+  it('should 404 for if no stock data is returned', async () => {
+    const server = createServer({})
+    const symbol = 'INVALID'
+    const mockResponse = {
+      Message: 'Error! The requested stock(s) could not be found.',
+    }
+    ;(axios.get as jest.Mock).mockResolvedValue({
+      data: mockResponse,
+    })
+
+    const res = await request(server).get(`/stock?symbol=${symbol}`)
+
+    expect(axios.get as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(axios.get as jest.Mock).toHaveBeenCalledWith(
+      `https://api.worldtradingdata.com/api/v1/stock?symbol=${symbol}&api_token=${API_TOKEN}`
+    )
+    expect(res.status).toBe(404)
+    expect(res.body).toEqual(mockResponse.Message)
+  })
+
   it('should fetch data for a single stock', async () => {
     const server = createServer({})
     const symbol = 'TEST'
@@ -129,7 +149,7 @@ describe('get stock data', () => {
 
     expect(axios.get as jest.Mock).toHaveBeenCalledTimes(1)
     expect(axios.get as jest.Mock).toHaveBeenCalledWith(
-      `https://api.worldtradingdata.com/api/v1/stock?api_token=urHaQsmtZPMJ8PGc67sm0RfzYNA4KDorSRCo0aN4Rjv8bNWDaJLGk8FINeKfsymbol=${symbol}`
+      `https://api.worldtradingdata.com/api/v1/stock?symbol=${symbol}&api_token=${API_TOKEN}`
     )
     expect(res.status).toBe(200)
     expect(res.body).toEqual(mockResponse)
@@ -157,7 +177,7 @@ describe('get stock data', () => {
 
     expect(axios.get as jest.Mock).toHaveBeenCalledTimes(1)
     expect(axios.get as jest.Mock).toHaveBeenCalledWith(
-      `https://api.worldtradingdata.com/api/v1/stock?api_token=urHaQsmtZPMJ8PGc67sm0RfzYNA4KDorSRCo0aN4Rjv8bNWDaJLGk8FINeKfsymbol=TEST,OTHER`
+      `https://api.worldtradingdata.com/api/v1/stock?symbol=TEST,OTHER&api_token=${API_TOKEN}`
     )
     expect(res.status).toBe(200)
     expect(res.body).toEqual(mockResponse)

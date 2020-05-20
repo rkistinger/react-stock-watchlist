@@ -8,6 +8,9 @@ interface Database {
   [userId: string]: Watchlist
 }
 
+export const API_TOKEN =
+  'urHaQsmtZPMJ8PGc67sm0RfzYNA4KDorSRCo0aN4Rjv8bNWDaJLGk8FINeKf'
+
 export default function createServer(db: Database) {
   const app = express()
   app.use(bodyParser.json())
@@ -69,10 +72,14 @@ export default function createServer(db: Database) {
         ? req.query.symbol
         : [req.query.symbol]
       const response = await axios.get(
-        `https://api.worldtradingdata.com/api/v1/stock?api_token=urHaQsmtZPMJ8PGc67sm0RfzYNA4KDorSRCo0aN4Rjv8bNWDaJLGk8FINeKfsymbol=${symbols.join(
+        `https://api.worldtradingdata.com/api/v1/stock?symbol=${symbols.join(
           ','
-        )}`
+        )}&api_token=${API_TOKEN}`
       )
+
+      if (!response.data.data) {
+        return res.status(404).json(response.data.Message)
+      }
 
       return res.json(response.data)
     } catch (error) {
