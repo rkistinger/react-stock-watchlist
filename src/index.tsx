@@ -1,7 +1,7 @@
+import 'bootstrap/dist/css/bootstrap.css'
 import React from 'react'
 import ReactDOM from 'react-dom'
 
-import 'antd/dist/antd.css'
 import App from './client/App'
 
 ReactDOM.render(

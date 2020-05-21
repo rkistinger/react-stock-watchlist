@@ -1,36 +1,108 @@
 import React from 'react'
 
-export interface Stock {
-  '52_week_high': string | null
-  '52_week_low': string | null
-  change_pct: string | null
-  close_yesterday: string | null
-  currency: string | null
-  day_change: string | null
-  day_high: string | null
-  day_low: string | null
-  eps: string | null
-  gmt_offset: string | null
-  last_trade_time: string | null
-  market_cap: string | null
-  name: string | null
-  pe: string | null
-  price: string | null
-  price_open: string | null
-  shares: string | null
-  stock_exchange_long: string | null
-  stock_exchange_short: string | null
-  symbol: string | null
-  timezone: string | null
-  timezone_name: string | null
-  volume: string | null
-  volume_avg: string | null
-}
+import { Stock } from '../types'
 
 interface Props {
   stock: Stock
+  cols: number
 }
 
 export default function (props: Props) {
-  return <div>hi</div>
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${props.cols}, auto)`,
+      }}
+    >
+      <div>
+        <span className="font-weight-bold">52 week low:</span>{' '}
+        {props.stock['52_week_low']}
+      </div>
+      <div>
+        <span className="font-weight-bold">52 week high:</span>{' '}
+        {props.stock['52_week_high']}
+      </div>
+      <div>
+        <span className="font-weight-bold">change_pct:</span>{' '}
+        {props.stock.change_pct}
+      </div>
+      <div>
+        <span className="font-weight-bold">close_yesterday:</span>{' '}
+        {props.stock.close_yesterday}
+      </div>
+      <div>
+        <span className="font-weight-bold">currency:</span>{' '}
+        {props.stock.currency}
+      </div>
+      <div>
+        <span className="font-weight-bold">day_change:</span>{' '}
+        {props.stock.day_change}
+      </div>
+      <div>
+        <span className="font-weight-bold">day_high:</span>{' '}
+        {props.stock.day_high}
+      </div>
+      <div>
+        <span className="font-weight-bold">day_low:</span> {props.stock.day_low}
+      </div>
+      <div>
+        <span className="font-weight-bold">eps:</span> {props.stock.eps}
+      </div>
+      <div>
+        <span className="font-weight-bold">gmt_offset:</span>{' '}
+        {props.stock.gmt_offset}
+      </div>
+      <div>
+        <span className="font-weight-bold">last_trade_time:</span>{' '}
+        {props.stock.last_trade_time}
+      </div>
+      <div>
+        <span className="font-weight-bold">market_cap:</span>{' '}
+        {props.stock.market_cap}
+      </div>
+      <div>
+        <span className="font-weight-bold">name:</span> {props.stock.name}
+      </div>
+      <div>
+        <span className="font-weight-bold">pe:</span> {props.stock.pe}
+      </div>
+      <div>
+        <span className="font-weight-bold">price:</span> {props.stock.price}
+      </div>
+      <div>
+        <span className="font-weight-bold">price_open:</span>{' '}
+        {props.stock.price_open}
+      </div>
+      <div>
+        <span className="font-weight-bold">shares:</span> {props.stock.shares}
+      </div>
+      <div>
+        <span className="font-weight-bold">stock_exchange_long:</span>{' '}
+        {props.stock.stock_exchange_long}
+      </div>
+      <div>
+        <span className="font-weight-bold">stock_exchange_short:</span>{' '}
+        {props.stock.stock_exchange_short}
+      </div>
+      <div>
+        <span className="font-weight-bold">symbol:</span> {props.stock.symbol}
+      </div>
+      <div>
+        <span className="font-weight-bold">timezone:</span>{' '}
+        {props.stock.timezone}
+      </div>
+      <div>
+        <span className="font-weight-bold">timezone_name:</span>{' '}
+        {props.stock.timezone_name}
+      </div>
+      <div>
+        <span className="font-weight-bold">volume:</span> {props.stock.volume}
+      </div>
+      <div>
+        <span className="font-weight-bold">volume_avg:</span>{' '}
+        {props.stock.volume_avg}
+      </div>
+    </div>
+  )
 }
