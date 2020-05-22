@@ -23,6 +23,7 @@ export interface Stock {
   timezone_name: string | null
   volume: string | null
   volume_avg: string | null
+  lastUpdated: number
 }
 
 export interface Watchlist {

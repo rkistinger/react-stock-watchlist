@@ -16,6 +16,10 @@ export default function (props: Props) {
       }}
     >
       <div>
+        <span className="font-weight-bold">lastUpdated:</span>{' '}
+        {props.stock.lastUpdated}
+      </div>
+      <div>
         <span className="font-weight-bold">52_week_low:</span>{' '}
         {props.stock['52_week_low']}
       </div>

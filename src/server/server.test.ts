@@ -8,6 +8,9 @@ jest.mock('axios', () => ({
   get: jest.fn(),
 }))
 
+const mockNow = 1590150907588
+jest.spyOn(global.Date, 'now').mockImplementation(() => mockNow)
+
 beforeEach(() => {
   jest.clearAllMocks()
 })
@@ -83,10 +86,14 @@ describe('get watchlist', () => {
           last_trade_time: null,
           pe: null,
           eps: null,
+          lastUpdated: mockNow,
         }
         return watchlist
       }, {} as Watchlist),
-      SPY: mockResponse.data[0],
+      SPY: {
+        ...mockResponse.data[0],
+        lastUpdated: mockNow,
+      },
     })
 
     expect(axios.get as jest.Mock).toHaveBeenCalledTimes(1)
@@ -126,6 +133,7 @@ describe('get watchlist', () => {
           last_trade_time: null,
           pe: null,
           eps: null,
+          lastUpdated: mockNow - 10,
         },
       },
     }
@@ -181,6 +189,7 @@ describe('remove stock', () => {
           last_trade_time: null,
           pe: null,
           eps: null,
+          lastUpdated: mockNow - 10,
         },
       },
     }
@@ -214,6 +223,7 @@ describe('remove stock', () => {
       last_trade_time: null,
       pe: null,
       eps: null,
+      lastUpdated: mockNow - 10,
     })
     expect(db[userId]).toEqual({})
   })
@@ -262,6 +272,7 @@ describe('refresh (update) stock', () => {
           last_trade_time: null,
           pe: null,
           eps: null,
+          lastUpdated: mockNow - 10,
         },
       },
     }
@@ -276,7 +287,7 @@ describe('refresh (update) stock', () => {
           name: 'Test stock',
           currency: 'USD',
           price: '11.06',
-          price_open: Date.now().toString(),
+          price_open: '11.00',
           day_high: '11.45',
           day_low: '10.85',
           '52_week_high': '19.75',
@@ -306,8 +317,14 @@ describe('refresh (update) stock', () => {
     const res = await request(server).put(`/watchlist/${userId}/${symbol}`)
 
     expect(res.status).toBe(200)
-    expect(res.body).toEqual(mockResponse.data[0])
-    expect(db[userId][symbol]).toEqual(mockResponse.data[0])
+    expect(res.body).toEqual({
+      ...mockResponse.data[0],
+      lastUpdated: mockNow,
+    })
+    expect(db[userId][symbol]).toEqual({
+      ...mockResponse.data[0],
+      lastUpdated: mockNow,
+    })
     expect(axios.get as jest.Mock).toHaveBeenCalledTimes(1)
     expect(axios.get as jest.Mock).toHaveBeenCalledWith(
       `https://api.worldtradingdata.com/api/v1/stock?symbol=${symbol}&api_token=${API_TOKEN}`
@@ -358,6 +375,7 @@ describe('add symbol', () => {
           last_trade_time: '2020-04-04 16:04:51',
           pe: 'N/A',
           eps: '-0.75',
+          lastUpdated: mockNow - 10,
         },
       },
     }
@@ -388,6 +406,7 @@ describe('add symbol', () => {
       last_trade_time: '2020-04-04 16:04:51',
       pe: 'N/A',
       eps: '-0.75',
+      lastUpdated: mockNow - 5,
     }
     const res = await request(server)
       .post(`/watchlist/${userId}/${symbol}`)
@@ -454,7 +473,12 @@ describe('get stock data', () => {
       `https://api.worldtradingdata.com/api/v1/stock?symbol=${symbol}&api_token=${API_TOKEN}`
     )
     expect(res.status).toBe(200)
-    expect(res.body).toEqual(mockResponse.data)
+    expect(res.body).toEqual(
+      mockResponse.data.map((stockData) => ({
+        ...stockData,
+        lastUpdated: mockNow,
+      }))
+    )
   })
 
   it('should fetch data for multiple stocks', async () => {
@@ -482,6 +506,11 @@ describe('get stock data', () => {
       `https://api.worldtradingdata.com/api/v1/stock?symbol=TEST,OTHER&api_token=${API_TOKEN}`
     )
     expect(res.status).toBe(200)
-    expect(res.body).toEqual(mockResponse.data)
+    expect(res.body).toEqual(
+      mockResponse.data.map((stockData) => ({
+        ...stockData,
+        lastUpdated: mockNow,
+      }))
+    )
   })
 })

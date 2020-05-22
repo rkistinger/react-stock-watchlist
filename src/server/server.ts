@@ -8,8 +8,6 @@ interface Database {
   [userId: string]: Watchlist
 }
 
-const IS_MOCKED = false
-
 export const defaultSymbols = ['SPY', 'DJI', 'RUS', 'NDX', 'TSLA']
 
 // export const API_TOKEN =
@@ -17,53 +15,26 @@ export const defaultSymbols = ['SPY', 'DJI', 'RUS', 'NDX', 'TSLA']
 export const API_TOKEN =
   'uHqPgKsjTR0h43dmXCZnjhdXccW4jDKuHjpIhkvS8bRnDsr6YLoVAWWZmhF6'
 
-async function fetchStockData(symbols: string[]): Promise<Stock[]> {
-  if (IS_MOCKED) {
-    const mockResponse = {
-      symbols_requested: symbols.length,
-      symbols_returned: symbols.length,
-      data: symbols.map((symbol) => ({
-        symbol,
-        name: 'Snap Inc',
-        currency: 'USD',
-        price: '11.06',
-        price_open: Date.now().toString(),
-        day_high: '11.45',
-        day_low: '10.85',
-        '52_week_high': '19.75',
-        '52_week_low': '7.89',
-        day_change: '0.24',
-        change_pct: '0.21',
-        close_yesterday: '11.27',
-        market_cap: '15352254464',
-        volume: '36852882',
-        volume_avg: '36852882',
-        shares: '15779962',
-        stock_exchange_long: 'New York Stock Exchange',
-        stock_exchange_short: 'NYSE',
-        timezone: 'EDT',
-        timezone_name: 'America/New_York',
-        gmt_offset: '-14400',
-        last_trade_time: '2020-04-04 16:04:51',
-        pe: 'N/A',
-        eps: '-0.75',
-      })),
-    }
-    return mockResponse.data
-  } else {
-    const response = await axios.get(
-      `https://api.worldtradingdata.com/api/v1/stock?symbol=${symbols.join(
-        ','
-      )}&api_token=${API_TOKEN}`
-    )
+async function fetchStockData(symbols: string[]) {
+  const response = await axios.get<{
+    symbols_requested: number
+    symbols_returned: number
+    data: Omit<Stock, 'lastUpdated'>[]
+  }>(
+    `https://api.worldtradingdata.com/api/v1/stock?symbol=${symbols.join(
+      ','
+    )}&api_token=${API_TOKEN}`
+  )
 
-    if (!response.data.data) {
-      console.error(response.data)
-      throw new Error(`Failed to fetch stock data for ${symbols.join(',')}`)
-    }
-
-    return response.data.data
+  if (!response.data.data) {
+    console.error(response.data)
+    throw new Error(`Failed to fetch stock data for ${symbols.join(',')}`)
   }
+
+  return response.data.data.map((stockData) => ({
+    ...stockData,
+    lastUpdated: Date.now(),
+  }))
 }
 
 export default function createServer(db: Database) {
@@ -110,6 +81,7 @@ export default function createServer(db: Database) {
                 last_trade_time: null,
                 pe: null,
                 eps: null,
+                lastUpdated: Date.now(),
               }
             }
 
@@ -166,7 +138,7 @@ export default function createServer(db: Database) {
     }
   )
 
-  app.post<{ userId: string; symbol: string }, Stock | string, Stock>(
+  app.post<{ userId: string; symbol: string }, Stock | string, Required<Stock>>(
     '/watchlist/:userId/:symbol',
     (req, res) => {
       if (!db[req.params.userId]) {
