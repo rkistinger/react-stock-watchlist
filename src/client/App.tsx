@@ -23,13 +23,14 @@ function App() {
   React.useEffect(() => {
     async function getWatchlist() {
       try {
-        const watchlistResponse = await fetch('/watchlist/default-user')
+        const res = await fetch('/watchlist/default-user')
 
-        if (!watchlistResponse.ok) {
-          throw new Error('Error fetching watchlist')
+        if (!res.ok) {
+          const errorMessage = await res.text()
+          throw new Error(errorMessage)
         }
 
-        const watchlist: Watchlist = await watchlistResponse.json()
+        const watchlist: Watchlist = await res.json()
         setWatchlist({
           status: 'idle',
           data: watchlist,
@@ -56,7 +57,8 @@ function App() {
       const res = await fetch(`/stock?symbol=${searchTerm.toUpperCase()}`)
 
       if (!res.ok) {
-        throw new Error('Search error')
+        const errorMessage = await res.text()
+        throw new Error(errorMessage)
       }
 
       const json: Stock[] = await res.json()
@@ -89,7 +91,8 @@ function App() {
       })
 
       if (!res.ok) {
-        throw new Error(`Error adding to watchlist`)
+        const errorMessage = await res.text()
+        throw new Error(errorMessage)
       }
 
       const json: Stock = await res.json()
@@ -126,7 +129,8 @@ function App() {
       })
 
       if (!res.ok) {
-        throw new Error('Remove stock error')
+        const errorMessage = await res.text()
+        throw new Error(errorMessage)
       }
 
       const { [symbol]: removedStock, ...restOfWatchlist } = watchlist.data
@@ -154,7 +158,8 @@ function App() {
       })
 
       if (!res.ok) {
-        throw new Error('Refresh stock error')
+        const errorMessage = await res.text()
+        throw new Error(errorMessage)
       }
 
       const updatedStockData: Stock = await res.json()

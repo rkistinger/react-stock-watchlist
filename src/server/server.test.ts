@@ -428,7 +428,7 @@ describe('get stock data', () => {
       `https://api.worldtradingdata.com/api/v1/stock?symbol=${symbol}&api_token=${API_TOKEN}`
     )
     expect(res.status).toBe(500)
-    expect(res.body).toEqual('Failed to fetch stock data')
+    expect(res.body).toEqual(`Failed to fetch stock data for ${symbol}`)
   })
 
   it('should fetch data for a single stock', async () => {

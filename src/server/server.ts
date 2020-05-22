@@ -59,7 +59,7 @@ async function fetchStockData(symbols: string[]): Promise<Stock[]> {
 
     if (!response.data.data) {
       console.error(response.data)
-      throw new Error('Failed to fetch stock data')
+      throw new Error(`Failed to fetch stock data for ${symbols.join(',')}`)
     }
 
     return response.data.data

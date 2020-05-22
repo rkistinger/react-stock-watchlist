@@ -324,11 +324,12 @@ describe('search + search results', () => {
 
   it('should show an error if the search failed', async () => {
     const searchTerm = 'TEST'
+    const errorMessage = 'Search error'
     fetchMock.mockResponses(
       // Fetch watchlist response
       [JSON.stringify({}), { status: 200 }],
       // Search stock response
-      ['Search error', { status: 500 }]
+      [errorMessage, { status: 500 }]
     )
 
     render(<App />)
@@ -340,7 +341,7 @@ describe('search + search results', () => {
     userEvent.click(screen.getByText('Search'))
 
     expect(
-      await screen.findByText('An error occurred: Search error')
+      await screen.findByText(`An error occurred: ${errorMessage}`)
     ).toBeVisible()
   })
 
@@ -373,13 +374,14 @@ describe('search + search results', () => {
       eps: '-0.75',
     }
 
+    const errorMessage = 'Error adding to watchlist'
     fetchMock.mockResponses(
       // Fetch watchlist response
       [JSON.stringify({}), { status: 200 }],
       // Search stock response
       [JSON.stringify([stock]), { status: 200 }],
       // Add to watchlist response
-      ['Error adding to watchlist', { status: 500 }]
+      [errorMessage, { status: 500 }]
     )
 
     render(<App />)
@@ -394,7 +396,7 @@ describe('search + search results', () => {
     userEvent.click(screen.getByText('Add to watchlist'))
 
     expect(
-      await screen.findByText('An error occurred: Error adding to watchlist')
+      await screen.findByText(`An error occurred: ${errorMessage}`)
     ).toBeVisible()
   })
 })
@@ -546,11 +548,12 @@ describe('watchlist table', () => {
       },
     }
 
+    const errorMessage = 'Error refreshing stock data'
     fetchMock.mockResponses(
       // Fetch watchlist response
       [JSON.stringify(watchlist), { status: 200 }],
       // Refresh stock response
-      ['Error refreshing stock data', { status: 500 }]
+      [errorMessage, { status: 500 }]
     )
 
     render(<App />)
@@ -558,7 +561,7 @@ describe('watchlist table', () => {
     expect(await screen.findByText(watchlist.TEST.symbol)).toBeVisible()
     userEvent.click(screen.getByText('Refresh'))
     expect(
-      await screen.findByText('An error occurred: Refresh stock error')
+      await screen.findByText(`An error occurred: ${errorMessage}`)
     ).toBeVisible()
 
     expect(fetchMock).toHaveBeenCalledTimes(2)
@@ -657,11 +660,12 @@ describe('watchlist table', () => {
       },
     }
 
+    const errorMessage = 'Error removing stock'
     fetchMock.mockResponses(
       // Fetch watchlist response
       [JSON.stringify(watchlist), { status: 200 }],
       // Refresh stock response
-      ['Error removing stock', { status: 500 }]
+      [errorMessage, { status: 500 }]
     )
 
     render(<App />)
@@ -670,7 +674,7 @@ describe('watchlist table', () => {
     userEvent.click(screen.getByText('Remove'))
 
     expect(
-      await screen.findByText('An error occurred: Remove stock error')
+      await screen.findByText(`An error occurred: ${errorMessage}`)
     ).toBeVisible()
     expect(screen.getByText(watchlist.TEST.symbol)).toBeVisible()
 
