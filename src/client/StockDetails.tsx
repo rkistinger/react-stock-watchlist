@@ -16,11 +16,11 @@ export default function (props: Props) {
       }}
     >
       <div>
-        <span className="font-weight-bold">52 week low:</span>{' '}
+        <span className="font-weight-bold">52_week_low:</span>{' '}
         {props.stock['52_week_low']}
       </div>
       <div>
-        <span className="font-weight-bold">52 week high:</span>{' '}
+        <span className="font-weight-bold">52_week_high:</span>{' '}
         {props.stock['52_week_high']}
       </div>
       <div>

@@ -27,7 +27,7 @@ export default function Search(props: Props) {
           }}
         />
         <InputGroupAddon addonType="append">
-          <Button color="primary" type="submit">
+          <Button color="primary" type="submit" disabled={props.disabled}>
             Search
           </Button>
         </InputGroupAddon>

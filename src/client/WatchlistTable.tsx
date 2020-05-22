@@ -42,6 +42,7 @@ export default function WatchlistTable(props: Props) {
           {Object.values(props.watchlist).map((stock) => (
             <tr
               key={stock.symbol}
+              data-testid={`watchlist-row-${stock.symbol}`}
               onClick={() => {
                 setSelectedStock(stock)
               }}
@@ -82,7 +83,9 @@ export default function WatchlistTable(props: Props) {
       </Table>
 
       <Modal size="lg" isOpen={Boolean(selectedStock)} toggle={closeModal}>
-        <ModalHeader toggle={closeModal}>{selectedStock?.symbol}</ModalHeader>
+        <ModalHeader toggle={closeModal}>
+          Stock Details: {selectedStock?.symbol}
+        </ModalHeader>
         <ModalBody>
           {selectedStock && <StockDetails stock={selectedStock} cols={2} />}
         </ModalBody>

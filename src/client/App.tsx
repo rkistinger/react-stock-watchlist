@@ -38,6 +38,7 @@ function App() {
         setWatchlist({
           status: 'error',
           data: watchlistDataRef.current,
+          message: error.message,
         })
       }
     }
@@ -67,6 +68,49 @@ function App() {
       setSearchResults({
         status: 'error',
         data: searchResults.data,
+        message: error.message,
+      })
+    }
+  }
+
+  async function addStockToWatchlist(stock: Stock) {
+    setSearchResults({
+      status: 'loading',
+      data: searchResults.data,
+    })
+
+    try {
+      const res = await fetch(`/watchlist/default-user/${stock.symbol}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(stock),
+      })
+
+      if (!res.ok) {
+        throw new Error(`Error adding to watchlist`)
+      }
+
+      const json: Stock = await res.json()
+
+      setSearchTerm('')
+      setSearchResults({
+        status: 'idle',
+        data: undefined,
+      })
+      setWatchlist({
+        status: 'idle',
+        data: {
+          ...watchlist.data,
+          [json.symbol]: json,
+        },
+      })
+    } catch (error) {
+      setSearchResults({
+        status: 'error',
+        data: searchResults.data,
+        message: error.message,
       })
     }
   }
@@ -94,6 +138,7 @@ function App() {
       setWatchlist({
         status: 'error',
         data: watchlist.data,
+        message: error.message,
       })
     }
   }
@@ -124,41 +169,7 @@ function App() {
       setWatchlist({
         status: 'error',
         data: watchlist.data,
-      })
-    }
-  }
-
-  async function addStockToWatchlist(stock: Stock) {
-    try {
-      const res = await fetch(`/watchlist/default-user/${stock.symbol}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(stock),
-      })
-      if (!res.ok) {
-        throw new Error(`Error adding to watchlist`)
-      }
-
-      const json: Stock = await res.json()
-
-      setSearchTerm('')
-      setSearchResults({
-        status: 'idle',
-        data: undefined,
-      })
-      setWatchlist({
-        status: 'idle',
-        data: {
-          ...watchlist.data,
-          [json.symbol]: json,
-        },
-      })
-    } catch (error) {
-      setWatchlist({
-        status: 'error',
-        data: watchlist.data,
+        message: error.message,
       })
     }
   }
@@ -179,17 +190,21 @@ function App() {
           }}
         />
         {searchResults.status === 'error' && (
-          <p className="text-danger">An error occurred during search</p>
+          <p className="text-danger">
+            An error occurred: {searchResults.message}
+          </p>
         )}
       </div>
 
-      {searchResults.status === 'idle' &&
-        searchResults.data &&
+      {searchResults.data &&
         searchResults.data.map((stock) => (
           <SearchResult
             key={stock.symbol}
             stock={stock}
-            disabled={Boolean(watchlist.data[stock.symbol])}
+            disabled={
+              searchResults.status === 'loading' ||
+              Boolean(watchlist.data[stock.symbol])
+            }
             onAdd={(stock) => {
               addStockToWatchlist(stock)
             }}
@@ -203,9 +218,7 @@ function App() {
           onRemove={removeStock}
         />
         {watchlist.status === 'error' && (
-          <p className="text-danger">
-            An error occurred fetching the watchlist
-          </p>
+          <p className="text-danger">An error occurred: {watchlist.message}</p>
         )}
       </div>
     </div>

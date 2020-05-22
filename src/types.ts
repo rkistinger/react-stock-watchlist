@@ -29,7 +29,13 @@ export interface Watchlist {
   [symbol: string]: Stock
 }
 
-export type Fetchable<Data = unknown> = {
-  status: 'loading' | 'idle' | 'error'
-  data: Data
-}
+export type Fetchable<Data = unknown> =
+  | {
+      status: 'loading' | 'idle'
+      data: Data
+    }
+  | {
+      status: 'error'
+      data: Data
+      message: string
+    }

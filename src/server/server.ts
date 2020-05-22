@@ -8,7 +8,9 @@ interface Database {
   [userId: string]: Watchlist
 }
 
-const IS_MOCKED = true
+const IS_MOCKED = false
+
+export const defaultSymbols = ['SPY', 'DJI', 'RUS', 'NDX', 'TSLA']
 
 // export const API_TOKEN =
 //   'urHaQsmtZPMJ8PGc67sm0RfzYNA4KDorSRCo0aN4Rjv8bNWDaJLGk8FINeKf'
@@ -56,7 +58,8 @@ async function fetchStockData(symbols: string[]): Promise<Stock[]> {
     )
 
     if (!response.data.data) {
-      throw new Error(response.data)
+      console.error(response.data)
+      throw new Error('Failed to fetch stock data')
     }
 
     return response.data.data
@@ -70,55 +73,68 @@ export default function createServer(db: Database) {
   app.get<{ userId: string }, Watchlist>(
     '/watchlist/:userId',
     async (req, res) => {
-      if (!db[req.params.userId]) {
-        const defaultSymbols = ['SPY', 'DJI', 'RUS', 'NDX', 'TSLA']
-        const stocksData = await fetchStockData(defaultSymbols)
-        const initialWatchList = stocksData.reduce((watchlist, stock) => {
-          watchlist[stock.symbol] = stock
-          return watchlist
-        }, {} as Watchlist)
+      try {
+        if (!db[req.params.userId]) {
+          const stocksData = await fetchStockData(defaultSymbols)
+          const initialWatchList = stocksData.reduce((watchlist, stock) => {
+            watchlist[stock.symbol] = stock
+            return watchlist
+          }, {} as Watchlist)
 
-        for (const symbol of defaultSymbols) {
-          if (!initialWatchList[symbol]) {
-            initialWatchList[symbol] = {
-              symbol,
-              name: null,
-              currency: null,
-              price: null,
-              price_open: null,
-              day_high: null,
-              day_low: null,
-              '52_week_high': null,
-              '52_week_low': null,
-              day_change: null,
-              change_pct: null,
-              close_yesterday: null,
-              market_cap: null,
-              volume: null,
-              volume_avg: null,
-              shares: null,
-              stock_exchange_long: null,
-              stock_exchange_short: null,
-              timezone: null,
-              timezone_name: null,
-              gmt_offset: null,
-              last_trade_time: null,
-              pe: null,
-              eps: null,
+          // Requirement to have default symbols in the watchlist
+          // despite no stock data for some.
+          for (const symbol of defaultSymbols) {
+            if (!initialWatchList[symbol]) {
+              initialWatchList[symbol] = {
+                symbol,
+                name: null,
+                currency: null,
+                price: null,
+                price_open: null,
+                day_high: null,
+                day_low: null,
+                '52_week_high': null,
+                '52_week_low': null,
+                day_change: null,
+                change_pct: null,
+                close_yesterday: null,
+                market_cap: null,
+                volume: null,
+                volume_avg: null,
+                shares: null,
+                stock_exchange_long: null,
+                stock_exchange_short: null,
+                timezone: null,
+                timezone_name: null,
+                gmt_offset: null,
+                last_trade_time: null,
+                pe: null,
+                eps: null,
+              }
             }
+
+            db[req.params.userId] = initialWatchList
           }
-
-          db[req.params.userId] = initialWatchList
         }
-      }
 
-      return res.json(db[req.params.userId])
+        return res.json(db[req.params.userId])
+      } catch (error) {
+        return res
+          .status(error?.response?.status ?? 500)
+          .json(error?.response?.data ?? error.message)
+      }
     }
   )
 
-  app.delete<{ userId: string; symbol: string }, Stock>(
+  app.delete<{ userId: string; symbol: string }, Stock | string>(
     '/watchlist/:userId/:symbol',
     (req, res) => {
+      if (!db[req.params.userId]) {
+        return res
+          .status(404)
+          .json(`No watchlist found for user ${req.params.userId}`)
+      }
+
       const { [req.params.symbol]: removedStock, ...restOfWatchlist } = db[
         req.params.userId
       ]
@@ -128,21 +144,39 @@ export default function createServer(db: Database) {
     }
   )
 
-  app.put<{ userId: string; symbol: string }, Stock>(
+  app.put<{ userId: string; symbol: string }, Stock | string>(
     '/watchlist/:userId/:symbol',
     async (req, res) => {
-      const [updatedStockData] = await fetchStockData([req.params.symbol])
+      if (!db[req.params.userId]) {
+        return res
+          .status(404)
+          .json(`No watchlist found for user ${req.params.userId}`)
+      }
 
-      db[req.params.userId][req.params.symbol] = updatedStockData
+      try {
+        const [updatedStockData] = await fetchStockData([req.params.symbol])
+        db[req.params.userId][req.params.symbol] = updatedStockData
 
-      return res.json(db[req.params.userId][req.params.symbol])
+        return res.json(db[req.params.userId][req.params.symbol])
+      } catch (error) {
+        return res
+          .status(error?.response?.status ?? 500)
+          .json(error?.response?.data ?? error.message)
+      }
     }
   )
 
-  app.post<{ userId: string; symbol: string }, Stock, Stock>(
+  app.post<{ userId: string; symbol: string }, Stock | string, Stock>(
     '/watchlist/:userId/:symbol',
     (req, res) => {
+      if (!db[req.params.userId]) {
+        return res
+          .status(404)
+          .json(`No watchlist found for user ${req.params.userId}`)
+      }
+
       db[req.params.userId][req.params.symbol] = req.body
+
       return res.json(db[req.params.userId][req.params.symbol])
     }
   )
@@ -162,8 +196,8 @@ export default function createServer(db: Database) {
       return res.json(stockData)
     } catch (error) {
       return res
-        .status(error?.response.status ?? 500)
-        .json(error?.response.data ?? error.message)
+        .status(error?.response?.status ?? 500)
+        .json(error?.response?.data ?? error.message)
     }
   })
 
